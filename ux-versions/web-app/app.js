@@ -516,6 +516,17 @@ function parseSheetDate(value) {
   const gvizDate = text.match(/^Date\((\d+),(\d+),(\d+)/);
   if (gvizDate) return new Date(Number(gvizDate[1]), Number(gvizDate[2]), Number(gvizDate[3]));
 
+  const isoDate = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoDate) {
+    return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
+  }
+
+  const slashDate = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (slashDate) {
+    const year = Number(slashDate[3]);
+    return new Date(year < 100 ? 2000 + year : year, Number(slashDate[1]) - 1, Number(slashDate[2]));
+  }
+
   const parsed = Date.parse(text);
   return Number.isNaN(parsed) ? null : new Date(parsed);
 }
@@ -663,7 +674,10 @@ function updateCheckoutDeadlines(dayList, hotelItems) {
     day.anchors = day.anchors.map(([time, label, meta = {}]) => {
       if (!/check-?out|check out/i.test(label)) return [time, label, meta];
 
-      const targetId = meta.targetId || findCurrentCardId(label);
+      const datedHotel = hotelItems.find((item) => (
+        sameCalendarDate(day.rawDate, item.rawCheckOutDate) && includesLoose(label, item.name)
+      ));
+      const targetId = datedHotel?.id || meta.targetId || findCurrentCardId(label);
       const hotel = hotelItems.find((item) => item.id === targetId);
       const deadline = usefulText(hotel?.checkOutTime) || checkoutDeadlineFromText(hotel?.details) || String(time || "").replace(/^(before|by)\s+/i, "");
 
@@ -672,6 +686,21 @@ function updateCheckoutDeadlines(dayList, hotelItems) {
         label,
         { ...meta, targetId, priority: -1 }
       ];
+    });
+  });
+}
+
+function linkExistingHotelAnchors(dayList, hotelItems) {
+  dayList.forEach((day) => {
+    day.anchors = day.anchors.map(([time, label, meta = {}]) => {
+      if (meta.targetId || !/check-?in|check in|check-?out|check out/i.test(label)) return [time, label, meta];
+
+      const dateKey = /check-?out|check out/i.test(label) ? "rawCheckOutDate" : "rawCheckInDate";
+      const hotel = hotelItems.find((item) => (
+        sameCalendarDate(day.rawDate, item[dateKey]) && includesLoose(label, item.name)
+      ));
+
+      return hotel ? [time, label, { ...meta, targetId: hotel.id }] : [time, label, meta];
     });
   });
 }
@@ -862,13 +891,15 @@ function buildTransport(travelRows) {
     const confirmation = getValue(row, ["confirmation", "ticketRecordLocator"]);
     const notes = getValue(row, ["notesSourceOfTruth", "source", "notes"]);
     const fallbackTrip = matchingFallback(fallbackData.transport, tripLeg || `${departFrom} -> ${arriveTo}`);
+    const departDisplay = displayDate(departDate);
+    const arriveDisplay = displayDate(arriveDate);
 
     return {
       id: fallbackTrip?.id || `travel-${slugify(tripLeg || flightTrain || index, index)}`,
       type: /flight|air|iberia|united|vueling/i.test(`${carrier} ${flightTrain}`) ? "Flight" : "Train",
       route: tripLeg || `${departFrom} -> ${arriveTo}`,
       carrier: [carrier, flightTrain].filter(Boolean).join(" "),
-      date: displayDate(departDate),
+      date: departDisplay === arriveDisplay ? departDisplay : `${departDisplay} / ${arriveDisplay}`,
       depart: getValue(row, ["departTime"]) || "TBD",
       arrive: getValue(row, ["arriveTime"]) || "TBD",
       rawDepartDate: departDate,
@@ -955,6 +986,7 @@ function applySheetRows(rowsByTab) {
   hotels = buildHotels(rowsByTab.lodging);
   days = buildDays(rowsByTab.timeline, rowsByTab.dailyPlans);
   linkExistingTravelAnchors(days, transport);
+  linkExistingHotelAnchors(days, hotels);
   updateCheckoutDeadlines(days, hotels);
   addTravelArrivalsToDays(days, transport);
   days.forEach((day) => {
