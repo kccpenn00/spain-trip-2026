@@ -535,7 +535,8 @@ function sortDateTime(dateValue, timeValue) {
   const date = parseSheetDate(dateValue);
   if (!date) return 0;
 
-  const parsedTime = Date.parse(`${date.toDateString()} ${timeValue || "12:00 AM"}`);
+  const normalizedTime = String(timeValue || "12:00 AM").replace(/^(before|by)\s+/i, "");
+  const parsedTime = Date.parse(`${date.toDateString()} ${normalizedTime}`);
   return Number.isNaN(parsedTime) ? date.getTime() : parsedTime;
 }
 
@@ -561,6 +562,118 @@ function fallbackUrl(fallbackItem, key) {
 
 function compactTripText(value) {
   return String(value || "").replace(/\bSan Francisco\b/g, "SF");
+}
+
+function sameCalendarDate(a, b) {
+  const first = parseSheetDate(a);
+  const second = parseSheetDate(b);
+  return !!first && !!second
+    && first.getFullYear() === second.getFullYear()
+    && first.getMonth() === second.getMonth()
+    && first.getDate() === second.getDate();
+}
+
+function checkoutDeadlineFromText(value) {
+  return String(value || "").match(/check-?out\s+(\d{1,2}:\d{2}\s*[AP]M)/i)?.[1] || "";
+}
+
+function addOrReplaceAnchor(day, time, label, meta = {}) {
+  const normalizedLabel = slugify(label);
+  const targetId = meta.targetId || "";
+  const existingIndex = day.anchors.findIndex((anchor) => (
+    (targetId && anchor[2]?.targetId === targetId && includesLoose(anchor[1], label))
+    || slugify(anchor[1]) === normalizedLabel
+  ));
+  const anchor = [time, label, meta];
+
+  if (existingIndex >= 0) {
+    day.anchors[existingIndex] = anchor;
+    return;
+  }
+
+  day.anchors.push(anchor);
+}
+
+function normalizeCheckoutAnchors(day) {
+  day.anchors = day.anchors.map(([time, label, meta = {}]) => {
+    if (!/check-?out|check out/i.test(label)) return [time, label, meta];
+
+    const normalizedTime = String(time || "").replace(/^before\s+/i, "by ");
+    return [
+      /^by\s+/i.test(normalizedTime) ? normalizedTime : `by ${normalizedTime}`,
+      label,
+      { ...meta, priority: -1 }
+    ];
+  });
+}
+
+function sortDayAnchors(day) {
+  normalizeCheckoutAnchors(day);
+  return day.anchors.sort((a, b) => {
+    const priorityA = a[2]?.priority ?? 0;
+    const priorityB = b[2]?.priority ?? 0;
+    if (priorityA !== priorityB) return priorityA - priorityB;
+
+    return sortDateTime(day.rawDate, a[0]) - sortDateTime(day.rawDate, b[0]);
+  });
+}
+
+function cityNameFromRoutePart(routePart) {
+  const text = String(routePart || "").trim();
+  return text.split(/\s+/)[0] || text;
+}
+
+function addTravelArrivalsToDays(dayList, travelItems) {
+  travelItems.forEach((item) => {
+    const existingArrival = dayList.some((day) => day.anchors.some((anchor) => (
+      anchor[2]?.targetId === item.id && /\b(arrive|arrival)\b/i.test(anchor[1])
+    )));
+    if (existingArrival) return;
+
+    const arrivalTime = usefulText(item.arrive);
+    if (!arrivalTime) return;
+
+    const departureDay = dayList.find((day) => day.anchors.some((anchor) => (
+      anchor[2]?.targetId === item.id || travelLabelMatchesItem(anchor[1], item)
+    )));
+    const rawArrivalDate = item.rawArriveDate || item.rawDepartDate;
+    const day = departureDay || dayList.find((candidate) => sameCalendarDate(candidate.rawDate, rawArrivalDate));
+
+    if (!day) return;
+
+    const destination = item.arriveTo || item.route.split(/\s*->\s*/)[1] || item.route;
+    const label = `${item.type} arrives ${destination}`;
+    addOrReplaceAnchor(day, arrivalTime, label, { targetId: item.id });
+  });
+}
+
+function linkExistingTravelAnchors(dayList, travelItems) {
+  dayList.forEach((day) => {
+    day.anchors = day.anchors.map(([time, label, meta = {}]) => {
+      if (meta.targetId) return [time, label, meta];
+
+      const travelItem = travelItems.find((item) => travelLabelMatchesItem(label, item));
+      return travelItem ? [time, label, { ...meta, targetId: travelItem.id }] : [time, label, meta];
+    });
+  });
+}
+
+function updateCheckoutDeadlines(dayList, hotelItems) {
+  dayList.forEach((day) => {
+    day.anchors = day.anchors.map(([time, label, meta = {}]) => {
+      if (!/check-?out|check out/i.test(label)) return [time, label, meta];
+
+      const targetId = meta.targetId || findCurrentCardId(label);
+      const hotel = hotelItems.find((item) => item.id === targetId);
+      const deadline = usefulText(hotel?.checkOutTime) || checkoutDeadlineFromText(hotel?.details) || String(time || "").replace(/^(before|by)\s+/i, "");
+
+      return [
+        `by ${deadline || "12:00 PM"}`,
+        label,
+        { ...meta, targetId, priority: -1 }
+      ];
+    });
+  });
 }
 
 function dataHasId(id) {
@@ -589,6 +702,41 @@ function routeAliases(route) {
   ].filter(Boolean);
 }
 
+function locationKeywords(value) {
+  return String(value || "")
+    .split(/[^a-zA-Z0-9]+/)
+    .map((part) => part.trim().toLowerCase())
+    .filter((part) => part.length >= 3);
+}
+
+function travelLabelMatchesItem(label, item) {
+  const normalizedLabel = slugify(label);
+  if (!normalizedLabel) return false;
+
+  if (item.carrier && includesLoose(label, item.carrier)) return true;
+  if (routeAliases(item.route).some((alias) => includesLoose(label, alias))) return true;
+
+  const routeParts = String(item.route || "").split(/\s*->\s*/);
+  const originKeywords = locationKeywords(item.departFrom || routeParts[0]);
+  const destinationKeywords = locationKeywords(item.arriveTo || routeParts[1]);
+  const hasTravelWord = /\b(train|fly|flight|depart|arrive|arrival)\b/i.test(label);
+  const originIndex = originKeywords
+    .map((keyword) => normalizedLabel.indexOf(keyword))
+    .filter((index) => index >= 0)
+    .sort((a, b) => a - b)[0];
+  const destinationIndex = destinationKeywords
+    .map((keyword) => normalizedLabel.indexOf(keyword))
+    .filter((index) => index >= 0)
+    .sort((a, b) => a - b)[0];
+  const hasOrigin = originIndex !== undefined;
+  const hasDestination = destinationIndex !== undefined;
+  const routeDirectionMatches = normalizedLabel.includes("from")
+    ? destinationIndex < originIndex
+    : originIndex < destinationIndex;
+
+  return hasTravelWord && hasOrigin && hasDestination && routeDirectionMatches;
+}
+
 function fallbackHotelFor(property, checkInDate) {
   const matchingHotels = fallbackData.hotels.filter((hotel) => includesLoose(hotel.name, property));
   if (matchingHotels.length <= 1) return matchingHotels[0];
@@ -608,11 +756,7 @@ function fallbackHotelFor(property, checkInDate) {
 function findCurrentCardId(label, targetId = "") {
   if (targetId && dataHasId(targetId)) return targetId;
 
-  const transportByLabel = transport.find((item) => (
-    item.carrier && includesLoose(label, item.carrier)
-  )) || transport.find((item) => (
-    routeAliases(item.route).some((alias) => includesLoose(label, alias))
-  ));
+  const transportByLabel = transport.find((item) => travelLabelMatchesItem(label, item));
 
   if (transportByLabel) return transportByLabel.id;
 
@@ -699,7 +843,7 @@ function buildDays(timelineRows, dailyPlanRows) {
   return [...grouped.values()]
     .map((day) => ({
       ...day,
-      anchors: day.anchors.sort((a, b) => sortDateTime(day.rawDate, a[0]) - sortDateTime(day.rawDate, b[0]))
+      anchors: sortDayAnchors(day)
     }))
     .sort((a, b) => parseSheetDate(a.rawDate) - parseSheetDate(b.rawDate));
 }
@@ -713,6 +857,8 @@ function buildTransport(travelRows) {
     const flightTrain = getValue(row, ["flightTrain", "flight", "train"]);
     const departFrom = getValue(row, ["departFrom"]);
     const arriveTo = getValue(row, ["arriveTo"]);
+    const departDate = getValue(row, ["departDate"]);
+    const arriveDate = getValue(row, ["arriveDate"]) || departDate;
     const confirmation = getValue(row, ["confirmation", "ticketRecordLocator"]);
     const notes = getValue(row, ["notesSourceOfTruth", "source", "notes"]);
     const fallbackTrip = matchingFallback(fallbackData.transport, tripLeg || `${departFrom} -> ${arriveTo}`);
@@ -722,9 +868,13 @@ function buildTransport(travelRows) {
       type: /flight|air|iberia|united|vueling/i.test(`${carrier} ${flightTrain}`) ? "Flight" : "Train",
       route: tripLeg || `${departFrom} -> ${arriveTo}`,
       carrier: [carrier, flightTrain].filter(Boolean).join(" "),
-      date: displayDate(getValue(row, ["departDate"])),
+      date: displayDate(departDate),
       depart: getValue(row, ["departTime"]) || "TBD",
       arrive: getValue(row, ["arriveTime"]) || "TBD",
+      rawDepartDate: departDate,
+      rawArriveDate: arriveDate,
+      departFrom,
+      arriveTo,
       details: [
         getValue(row, ["aircraftEquipment", "cabinFare"]),
         getValue(row, ["seats"]),
@@ -742,6 +892,8 @@ function buildHotels(lodgingRows) {
   return lodgingRows.map((row, index) => {
     const property = getValue(row, ["property", "name"]);
     const checkInDate = getValue(row, ["checkInDate"]);
+    const checkOutDate = getValue(row, ["checkOutDate"]);
+    const checkOutTime = getValue(row, ["checkOutTime", "checkoutTime", "checkOut", "checkout"]);
     const fallbackHotel = fallbackHotelFor(property, checkInDate);
     return {
       id: fallbackHotel?.id || `hotel-${slugify(`${property}-${checkInDate}`, index)}`,
@@ -750,10 +902,13 @@ function buildHotels(lodgingRows) {
       details: [
         displayDate(checkInDate),
         "to",
-        displayDate(getValue(row, ["checkOutDate"])),
+        displayDate(checkOutDate),
         getValue(row, ["confirmation"]) && `Confirmation ${getValue(row, ["confirmation"])}`,
         getValue(row, ["room"])
       ].filter(Boolean).join(" "),
+      rawCheckInDate: checkInDate,
+      rawCheckOutDate: checkOutDate,
+      checkOutTime,
       note: getValue(row, ["notes", "cancellationNotes", "status"]),
       address: getValue(row, ["address"]),
       mapUrl: urlValue(getValue(row, ["mapLink"])),
@@ -796,9 +951,15 @@ function buildTimedItems(rows, options) {
 }
 
 function applySheetRows(rowsByTab) {
-  days = buildDays(rowsByTab.timeline, rowsByTab.dailyPlans);
   transport = buildTransport(rowsByTab.travel);
   hotels = buildHotels(rowsByTab.lodging);
+  days = buildDays(rowsByTab.timeline, rowsByTab.dailyPlans);
+  linkExistingTravelAnchors(days, transport);
+  updateCheckoutDeadlines(days, hotels);
+  addTravelArrivalsToDays(days, transport);
+  days.forEach((day) => {
+    day.anchors = sortDayAnchors(day);
+  });
   restaurants = buildTimedItems(rowsByTab.restaurants, {
     fallback: fallbackData.restaurants,
     fallbackName: "Restaurant",
@@ -831,12 +992,12 @@ function renderLinks(item) {
   return links ? `<p class="links">${links}</p>` : "";
 }
 
-function linkToKnownCard(label) {
+function linkToKnownCard(label, targetId = "") {
   const match = [...timelineLinkLabels].find(([text]) => label.includes(text));
-  const targetId = findCurrentCardId(label, match?.[1]);
-  if (!targetId) return label;
+  const resolvedTargetId = findCurrentCardId(label, targetId || match?.[1]);
+  if (!resolvedTargetId) return label;
 
-  return `<a class="jumpLink" href="#${targetId}">${label}</a>`;
+  return `<a class="jumpLink" href="#${resolvedTargetId}">${label}</a>`;
 }
 
 function linkSummaryTerms(summary) {
@@ -865,10 +1026,10 @@ function renderDays(city = "All") {
       <h3>${compactTripText(day.title)}</h3>
       <p>${linkSummaryTerms(compactTripText(day.summary))}</p>
       <div class="anchors">
-        ${day.anchors.map(([time, label]) => `
+        ${day.anchors.map(([time, label, meta = {}]) => `
           <div class="anchor">
             <time>${compactTripText(time)}</time>
-            <span>${linkToKnownCard(compactTripText(label))}</span>
+            <span>${linkToKnownCard(compactTripText(label), meta.targetId)}</span>
           </div>
         `).join("")}
       </div>
