@@ -285,11 +285,13 @@ main {
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .dateBlock strong {
   display: block;
   font-size: 21px;
+  white-space: nowrap;
 }
 
 .badge {
@@ -326,7 +328,7 @@ main {
 
 .anchor {
   display: grid;
-  grid-template-columns: 72px 1fr;
+  grid-template-columns: 112px 1fr;
   gap: 12px;
   align-items: start;
   padding-top: 10px;
@@ -335,7 +337,9 @@ main {
 
 .anchor time {
   color: var(--terracotta);
+  font-size: 13px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .anchor span {
@@ -438,14 +442,15 @@ main {
 
 .timeMeta {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin: 0 0 16px;
   padding: 0;
 }
 
 .timeMeta div {
-  padding: 10px;
+  min-width: 0;
+  padding: 6px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.42);
 }
@@ -462,7 +467,9 @@ main {
 .timeMeta dd {
   margin: 0;
   color: var(--ink);
+  font-size: 14px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 :target {
@@ -573,6 +580,14 @@ main {
     left: 20px;
     top: auto;
     bottom: -6px;
+  }
+
+  .anchor {
+    grid-template-columns: 112px 1fr;
+  }
+
+  .timeMeta {
+    grid-template-columns: repeat(3, minmax(78px, 1fr));
   }
 
   .issueList article {

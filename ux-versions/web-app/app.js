@@ -2,7 +2,7 @@ let days = [
   {
     city: "Transit",
     date: "Sun, May 31",
-    title: "Depart San Francisco",
+    title: "Depart SF",
     summary: "Start the trip with the long-haul United Polaris flight to Barcelona.",
     anchors: [
       ["6:00 PM", "United UA 672 departs SFO, seats 9D and 9G"]
@@ -110,7 +110,7 @@ let days = [
     city: "Transit",
     date: "Wed, Jun 10",
     title: "Fly Home",
-    summary: "Check out and return to San Francisco on United Polaris.",
+    summary: "Check out and return to SF on United Polaris.",
     anchors: [
       ["11:00 AM", "Seventy Barcelona return stay check-out"],
       ["4:10 PM", "United UA 673 departs BCN, seats 2D and 2G"],
@@ -339,6 +339,11 @@ const timelineLinkLabels = new Map([
   ["ILSA iryo 06110", "travel-iryo-06110"],
   ["Renfe AVE 02082", "travel-renfe-ave-02082"],
   ["Renfe AVE 02130", "travel-renfe-ave-02130"],
+  ["Barcelona -> Madrid", "travel-iryo-06110"],
+  ["Barcelona Sants", "travel-iryo-06110"],
+  ["Madrid Atocha", "travel-iryo-06110"],
+  ["Madrid -> Cordoba", "travel-renfe-ave-02082"],
+  ["Cordoba -> Seville", "travel-renfe-ave-02130"],
   ["Iberia 5065", "travel-iberia-vueling-5065"],
   ["United UA 673", "travel-united-ua-673"],
   ["Seventy Barcelona check-in", "hotel-seventy-barcelona-first"],
@@ -554,6 +559,10 @@ function fallbackUrl(fallbackItem, key) {
   return fallbackItem?.[key] || "";
 }
 
+function compactTripText(value) {
+  return String(value || "").replace(/\bSan Francisco\b/g, "SF");
+}
+
 function dataHasId(id) {
   return [...transport, ...hotels, ...restaurants, ...activities].some((item) => item.id === id);
 }
@@ -564,6 +573,20 @@ function includesLoose(haystack, needle) {
   return normalizedHaystack && normalizedNeedle && (
     normalizedHaystack.includes(normalizedNeedle) || normalizedNeedle.includes(normalizedHaystack)
   );
+}
+
+function routeAliases(route) {
+  const text = String(route || "").trim();
+  if (!text) return [];
+
+  const arrowParts = text.split(/\s*->\s*/).filter(Boolean);
+  return [
+    text,
+    text.replace(/\s*->\s*/g, " to "),
+    arrowParts.length === 2 ? `${arrowParts[1]} from ${arrowParts[0]}` : "",
+    arrowParts.length === 2 ? `Train ${arrowParts[0]} to ${arrowParts[1]}` : "",
+    arrowParts.length === 2 ? `Fly ${arrowParts[0]} to ${arrowParts[1]}` : ""
+  ].filter(Boolean);
 }
 
 function fallbackHotelFor(property, checkInDate) {
@@ -584,6 +607,14 @@ function fallbackHotelFor(property, checkInDate) {
 
 function findCurrentCardId(label, targetId = "") {
   if (targetId && dataHasId(targetId)) return targetId;
+
+  const transportByLabel = transport.find((item) => (
+    item.carrier && includesLoose(label, item.carrier)
+  )) || transport.find((item) => (
+    routeAliases(item.route).some((alias) => includesLoose(label, alias))
+  ));
+
+  if (transportByLabel) return transportByLabel.id;
 
   const candidates = [
     ...transport.map((item) => ({
@@ -826,18 +857,18 @@ function renderDays(city = "All") {
     <article class="dayCard">
       <div class="dayTop">
         <div class="dateBlock">
-          <span>${day.city}</span>
-          <strong>${day.date}</strong>
+          <span>${compactTripText(day.city)}</span>
+          <strong>${compactTripText(day.date)}</strong>
         </div>
-        <span class="badge ${day.city}">${day.city}</span>
+        <span class="badge ${day.city}">${compactTripText(day.city)}</span>
       </div>
-      <h3>${day.title}</h3>
-      <p>${linkSummaryTerms(day.summary)}</p>
+      <h3>${compactTripText(day.title)}</h3>
+      <p>${linkSummaryTerms(compactTripText(day.summary))}</p>
       <div class="anchors">
         ${day.anchors.map(([time, label]) => `
           <div class="anchor">
-            <time>${time}</time>
-            <span>${linkToKnownCard(label)}</span>
+            <time>${compactTripText(time)}</time>
+            <span>${linkToKnownCard(compactTripText(label))}</span>
           </div>
         `).join("")}
       </div>
@@ -848,12 +879,12 @@ function renderDays(city = "All") {
 function renderHotels() {
   stayGrid.innerHTML = hotels.map((hotel) => `
     <article id="${hotel.id}">
-      <span class="city">${hotel.city}</span>
-      <h3>${hotel.name}</h3>
-      <p>${hotel.details}</p>
-      ${hotel.address ? `<p class="address">${hotel.address}</p>` : ""}
+      <span class="city">${compactTripText(hotel.city)}</span>
+      <h3>${compactTripText(hotel.name)}</h3>
+      <p>${compactTripText(hotel.details)}</p>
+      ${hotel.address ? `<p class="address">${compactTripText(hotel.address)}</p>` : ""}
       ${renderLinks(hotel)}
-      ${hotel.note ? `<small>${hotel.note}</small>` : ""}
+      ${hotel.note ? `<small>${compactTripText(hotel.note)}</small>` : ""}
     </article>
   `).join("");
   externalLinksInNewWindow();
@@ -862,16 +893,16 @@ function renderHotels() {
 function renderTransport() {
   transportGrid.innerHTML = transport.map((item) => `
     <article id="${item.id}">
-      <span>${item.type}</span>
-      <h3>${item.route}</h3>
+      <span>${compactTripText(item.type)}</span>
+      <h3>${compactTripText(item.route)}</h3>
       <dl class="timeMeta">
-        <div><dt>Date</dt><dd>${item.date}</dd></div>
-        <div><dt>Depart</dt><dd>${item.depart}</dd></div>
-        <div><dt>Arrive</dt><dd>${item.arrive}</dd></div>
+        <div><dt>Date</dt><dd>${compactTripText(item.date)}</dd></div>
+        <div><dt>Depart</dt><dd>${compactTripText(item.depart)}</dd></div>
+        <div><dt>Arrive</dt><dd>${compactTripText(item.arrive)}</dd></div>
       </dl>
-      <p class="address">${item.carrier}</p>
-      <p>${item.details}</p>
-      ${item.source ? `<small>${item.source}</small>` : ""}
+      <p class="address">${compactTripText(item.carrier)}</p>
+      <p>${compactTripText(item.details)}</p>
+      ${item.source ? `<small>${compactTripText(item.source)}</small>` : ""}
     </article>
   `).join("");
 }
@@ -883,15 +914,15 @@ function renderTimedCards(items, grid, city = "All") {
 
   grid.innerHTML = visible.map((item) => `
     <article id="${item.id}">
-      <span class="city">${item.city}</span>
-      <h3>${item.name}</h3>
+      <span class="city">${compactTripText(item.city)}</span>
+      <h3>${compactTripText(item.name)}</h3>
       <dl class="timeMeta">
-        <div><dt>Date</dt><dd>${item.date}</dd></div>
-        <div><dt>Start</dt><dd>${item.start}</dd></div>
-        <div><dt>End</dt><dd>${item.end}</dd></div>
+        <div><dt>Date</dt><dd>${compactTripText(item.date)}</dd></div>
+        <div><dt>Start</dt><dd>${compactTripText(item.start)}</dd></div>
+        <div><dt>End</dt><dd>${compactTripText(item.end)}</dd></div>
       </dl>
-      ${item.details ? `<p>${item.details}</p>` : ""}
-      ${item.address ? `<p class="address">${item.address}</p>` : ""}
+      ${item.details ? `<p>${compactTripText(item.details)}</p>` : ""}
+      ${item.address ? `<p class="address">${compactTripText(item.address)}</p>` : ""}
       ${renderLinks(item)}
     </article>
   `).join("");
