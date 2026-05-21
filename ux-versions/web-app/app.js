@@ -554,6 +554,69 @@ function fallbackUrl(fallbackItem, key) {
   return fallbackItem?.[key] || "";
 }
 
+function dataHasId(id) {
+  return [...transport, ...hotels, ...restaurants, ...activities].some((item) => item.id === id);
+}
+
+function includesLoose(haystack, needle) {
+  const normalizedHaystack = slugify(haystack);
+  const normalizedNeedle = slugify(needle);
+  return normalizedHaystack && normalizedNeedle && (
+    normalizedHaystack.includes(normalizedNeedle) || normalizedNeedle.includes(normalizedHaystack)
+  );
+}
+
+function fallbackHotelFor(property, checkInDate) {
+  const matchingHotels = fallbackData.hotels.filter((hotel) => includesLoose(hotel.name, property));
+  if (matchingHotels.length <= 1) return matchingHotels[0];
+
+  const parsedCheckIn = parseSheetDate(checkInDate);
+  const monthDay = parsedCheckIn
+    ? `${parsedCheckIn.getMonth() + 1}/${parsedCheckIn.getDate()}`
+    : String(checkInDate || "");
+
+  if (/6\/8|jun 8/i.test(monthDay)) {
+    return matchingHotels.find((hotel) => /return/i.test(hotel.id)) || matchingHotels[1];
+  }
+
+  return matchingHotels.find((hotel) => !/return/i.test(hotel.id)) || matchingHotels[0];
+}
+
+function findCurrentCardId(label, targetId = "") {
+  if (targetId && dataHasId(targetId)) return targetId;
+
+  const candidates = [
+    ...transport.map((item) => ({
+      id: item.id,
+      aliases: [item.carrier, item.route, item.details]
+    })),
+    ...hotels.map((item) => ({
+      id: item.id,
+      aliases: [item.name, item.details, item.note]
+    })),
+    ...restaurants.map((item) => ({
+      id: item.id,
+      aliases: [item.name, item.details, item.address]
+    })),
+    ...activities.map((item) => ({
+      id: item.id,
+      aliases: [item.name, item.details, item.address]
+    }))
+  ];
+
+  if (/seventy barcelona/i.test(label)) {
+    const seventyHotels = hotels.filter((hotel) => includesLoose(hotel.name, "Seventy Barcelona"));
+    if (/return/i.test(label)) {
+      return seventyHotels.find((hotel) => /return|jun 8/i.test(`${hotel.id} ${hotel.details}`))?.id || seventyHotels[1]?.id || "";
+    }
+    return seventyHotels.find((hotel) => !/return|jun 8/i.test(`${hotel.id} ${hotel.details}`))?.id || seventyHotels[0]?.id || "";
+  }
+
+  return candidates.find((candidate) => (
+    candidate.aliases.some((alias) => alias && includesLoose(label, alias))
+  ))?.id || "";
+}
+
 function buildDays(timelineRows, dailyPlanRows) {
   if (!timelineRows.length && !dailyPlanRows.length) return fallbackData.days;
 
@@ -621,9 +684,10 @@ function buildTransport(travelRows) {
     const arriveTo = getValue(row, ["arriveTo"]);
     const confirmation = getValue(row, ["confirmation", "ticketRecordLocator"]);
     const notes = getValue(row, ["notesSourceOfTruth", "source", "notes"]);
+    const fallbackTrip = matchingFallback(fallbackData.transport, tripLeg || `${departFrom} -> ${arriveTo}`);
 
     return {
-      id: `travel-${slugify(tripLeg || flightTrain || index, index)}`,
+      id: fallbackTrip?.id || `travel-${slugify(tripLeg || flightTrain || index, index)}`,
       type: /flight|air|iberia|united|vueling/i.test(`${carrier} ${flightTrain}`) ? "Flight" : "Train",
       route: tripLeg || `${departFrom} -> ${arriveTo}`,
       carrier: [carrier, flightTrain].filter(Boolean).join(" "),
@@ -646,13 +710,14 @@ function buildHotels(lodgingRows) {
 
   return lodgingRows.map((row, index) => {
     const property = getValue(row, ["property", "name"]);
-    const fallbackHotel = matchingFallback(fallbackData.hotels, property);
+    const checkInDate = getValue(row, ["checkInDate"]);
+    const fallbackHotel = fallbackHotelFor(property, checkInDate);
     return {
-      id: `hotel-${slugify(`${property}-${getValue(row, ["checkInDate"])}`, index)}`,
+      id: fallbackHotel?.id || `hotel-${slugify(`${property}-${checkInDate}`, index)}`,
       city: getValue(row, ["city"]) || "Trip",
       name: property || "Lodging",
       details: [
-        displayDate(getValue(row, ["checkInDate"])),
+        displayDate(checkInDate),
         "to",
         displayDate(getValue(row, ["checkOutDate"])),
         getValue(row, ["confirmation"]) && `Confirmation ${getValue(row, ["confirmation"])}`,
@@ -679,7 +744,7 @@ function buildTimedItems(rows, options) {
     const fallbackItem = matchingFallback(options.fallback, name);
 
     return {
-      id: `${options.idPrefix}-${slugify(`${name}-${date}`, index)}`,
+      id: fallbackItem?.id || `${options.idPrefix}-${slugify(`${name}-${date}`, index)}`,
       city: getValue(row, ["city"]) || "Trip",
       name: name || options.fallbackName,
       date: displayDate(date),
@@ -737,13 +802,22 @@ function renderLinks(item) {
 
 function linkToKnownCard(label) {
   const match = [...timelineLinkLabels].find(([text]) => label.includes(text));
-  if (!match) return label;
+  const targetId = findCurrentCardId(label, match?.[1]);
+  if (!targetId) return label;
 
-  return `<a class="jumpLink" href="#${match[1]}">${label}</a>`;
+  return `<a class="jumpLink" href="#${targetId}">${label}</a>`;
 }
 
 function linkSummaryTerms(summary) {
-  return summaryLinkReplacements.reduce((linked, [phrase, replacement]) => linked.replace(phrase, replacement), summary);
+  return summaryLinkReplacements.reduce((linked, [phrase, replacement]) => {
+    const legacyTarget = replacement.match(/href="#([^"]+)"/)?.[1] || "";
+    const targetId = findCurrentCardId(phrase, legacyTarget);
+    const dynamicReplacement = targetId
+      ? replacement.replace(/href="#[^"]+"/, `href="#${targetId}"`)
+      : phrase;
+
+    return linked.replace(phrase, dynamicReplacement);
+  }, summary);
 }
 
 function renderDays(city = "All") {
@@ -831,11 +905,16 @@ function externalLinksInNewWindow() {
   });
 }
 
+function setActiveFilter(group, city) {
+  document.querySelectorAll(`[data-filter-group="${group}"] button`).forEach((button) => {
+    button.classList.toggle("active", button.dataset.city === city);
+  });
+}
+
 function wireFilterButtons(group, render) {
   document.querySelectorAll(`[data-filter-group="${group}"] button`).forEach((button) => {
     button.addEventListener("click", () => {
-      document.querySelectorAll(`[data-filter-group="${group}"] button`).forEach((item) => item.classList.remove("active"));
-      button.classList.add("active");
+      setActiveFilter(group, button.dataset.city);
       render(button.dataset.city);
     });
   });
@@ -851,6 +930,32 @@ timelineFilterButtons.forEach((button) => {
 
 wireFilterButtons("restaurants", (city) => renderTimedCards(restaurants, restaurantGrid, city));
 wireFilterButtons("activities", (city) => renderTimedCards(activities, activityGrid, city));
+
+timeline.addEventListener("click", (event) => {
+  const link = event.target.closest('a.jumpLink[href^="#"]');
+  if (!link) return;
+
+  const targetId = decodeURIComponent(link.getAttribute("href").slice(1));
+  const restaurant = restaurants.find((item) => item.id === targetId);
+  const activity = activities.find((item) => item.id === targetId);
+
+  if (restaurant && !document.getElementById(targetId)) {
+    setActiveFilter("restaurants", "All");
+    renderTimedCards(restaurants, restaurantGrid, "All");
+  }
+
+  if (activity && !document.getElementById(targetId)) {
+    setActiveFilter("activities", "All");
+    renderTimedCards(activities, activityGrid, "All");
+  }
+
+  const target = document.getElementById(targetId);
+  if (!target) return;
+
+  event.preventDefault();
+  history.pushState(null, "", `#${targetId}`);
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+});
 
 function renderAll() {
   const activeTimelineCity = document.querySelector('[data-filter-group="timeline"] button.active')?.dataset.city || "All";
