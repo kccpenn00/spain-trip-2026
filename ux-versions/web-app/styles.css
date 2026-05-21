@@ -38,6 +38,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
 }
 
 .heroOverlay {
@@ -534,24 +535,53 @@ main {
 
 @media (max-width: 680px) {
   .hero {
-    min-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    background: #111b1a;
+  }
+
+  .hero img {
+    position: relative;
+    height: 58vh;
+    min-height: 430px;
+    object-position: 35% center;
+  }
+
+  .heroOverlay {
+    bottom: auto;
+    height: 58vh;
+    background:
+      linear-gradient(180deg, rgba(15, 24, 23, 0.26) 0%, rgba(15, 24, 23, 0.04) 34%, rgba(15, 24, 23, 0.16) 100%);
   }
 
   nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     justify-content: flex-start;
     overflow-x: auto;
     padding: 16px;
   }
 
   .heroContent {
-    width: calc(100% - 32px);
-    min-height: calc(82vh - 70px);
-    margin-left: 16px;
-    padding-bottom: 86px;
+    width: 100%;
+    min-height: auto;
+    margin-left: 0;
+    justify-content: flex-end;
+    padding: 24px 20px 32px;
+    background:
+      linear-gradient(180deg, rgba(17, 27, 26, 0.96), #111b1a);
   }
 
   h1 {
-    font-size: 44px;
+    max-width: 11ch;
+    font-size: 40px;
+  }
+
+  .heroContent > p:not(.eyebrow) {
+    font-size: 17px;
   }
 
   .sectionHeader h2 {
@@ -560,6 +590,7 @@ main {
 
   main {
     width: calc(100% - 20px);
+    margin-top: 0;
   }
 
   .tripBar,
