@@ -43,6 +43,8 @@ Guidance:
 - Include "Arrive By" for flights, trains, reservations, and timed entries.
 - Keep notes short but operational.
 - If details are missing, use `TBD` and say what is missing in notes or Documents.
+- Add confirmed dinner reservations to both `Timeline` and `Restaurants` so they appear in daily cards and detail cards.
+- Hotel checkout entries should show the latest checkout deadline as `by <time>` in the website, even if the traveler will leave earlier for a train or flight.
 
 ## Travel
 
@@ -74,6 +76,7 @@ Guidance:
 - Put booking confirmation and airline/train confirmation in separate fields when both exist.
 - Use the notes/source field to state the authoritative source.
 - Keep baggage, terminal, gate, and seat gaps visible.
+- If departure and arrival dates differ, the website should show both dates on the travel detail card.
 
 ## Lodging
 
@@ -192,6 +195,12 @@ Guidance:
 - If dinner is part of or tied to an activity, reference that activity in the Dinner column.
 - Keep this tab brief: summarize the day, and point to `Restaurants`, `Activities`, `Travel`, or `Lodging` for detailed records.
 - Put only the most useful confirmation references here; do not duplicate every address, contact detail, or source note from detail tabs.
+
+## Website Parsing Rules
+
+- Treat Google Sheet `YYYY-MM-DD` strings as local calendar dates. Do not use JavaScript `Date.parse("YYYY-MM-DD")` for display because it parses as UTC and can show the prior day in Pacific time.
+- The web app should resolve daily-card links against the current Sheet-backed card IDs, not only the embedded fallback IDs.
+- Sheet-only data updates should refresh on the live site without a Git push; app-code behavior changes still require commit and push.
 
 ## Documents
 

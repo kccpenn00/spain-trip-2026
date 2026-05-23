@@ -20,6 +20,8 @@ Tabs:
 - `Lodging`: hotel reservations
 - `Daily Plans`: flexible daily plans with Breakfast, Lunch, and Dinner placeholders for every trip date
 - `Documents`: source tracking and extraction notes
+- `Restaurants`: dinner reservations and meal logistics
+- `Activities`: tours, classes, shows, and booked experiences
 
 ## Desired End State
 
@@ -29,6 +31,32 @@ The current working shape is:
 2. Website / lightweight web app as the active user-friendly view.
 
 Do not maintain or update the Google Doc / printable travel packet by default. It can be treated as a prior prototype unless Kevin explicitly asks to revive or update it.
+
+## Website / Deployment
+
+The active web app lives in `ux-versions/web-app`.
+
+The site is deployed through Vercel from the GitHub repo `kccpenn00/spain-trip-2026`. Vercel should use:
+
+- Root directory: `ux-versions/web-app`
+- Framework preset: Other / static
+- Build command: blank
+
+Normal workflow:
+
+1. Edit local code or update the Google Sheet.
+2. For code changes, commit and push to GitHub; Vercel redeploys automatically.
+3. For Sheet-only data changes, no Git commit is needed; the live site reads the public Google Sheet after refresh.
+
+The local test server can be run from `ux-versions/web-app` with `python3 -m http.server 8000`, then opened at `http://localhost:8000`.
+
+## Implementation Notes
+
+- The web app live-loads the Sheet tabs in the browser and falls back to embedded data if the Sheet is unavailable.
+- Spreadsheet date strings such as `2026-06-02` must be parsed as local calendar dates, not as UTC instants. JavaScript `Date.parse("YYYY-MM-DD")` caused one-day-early display in Pacific time.
+- Daily timeline jump links should resolve against currently rendered Sheet-backed card IDs, not only embedded fallback IDs.
+- Hotel checkout rows should sort first on checkout days and display `by <time>` to show the latest checkout deadline, even if the traveler will leave earlier for a train or flight.
+- Detailed travel cards should show both departure and arrival dates when they differ, for example `Sun, May 31 / Mon, Jun 1`.
 
 ## Collaboration Pattern
 
@@ -49,6 +77,7 @@ Downstream surfaces such as the website / web-app view should be regenerated or 
 - Gran Hotel Ingles Madrid: source of truth is Amex Travel reservation and Hotmail confirmation email.
 - Hotel Alfonso XIII Seville: source of truth is Amex Travel reservation and Hotmail confirmation email.
 - Seville to Barcelona flight: source of truth is Amex Travel and Hotmail confirmation email.
+- Casa Amalia 1950: source of truth is Gmail; Google/Tripadvisor currently identify the address as `Ptge. del Mercat, 14, Eixample, 08009 Barcelona, Spain`.
 
 Screenshots are useful for extraction but should not be described as the live source of truth unless no other source is known.
 

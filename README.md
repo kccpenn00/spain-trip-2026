@@ -32,6 +32,23 @@ The web app in `ux-versions/web-app` now attempts to load these Sheet tabs direc
 
 Because this is a static website, live loading only works when the Google Sheet is publicly viewable or exposed through a public endpoint. If Google requires sign-in, the site keeps working from the embedded fallback data and shows a fallback status message.
 
+## Local and Public Website
+
+Local test server:
+
+```bash
+cd ux-versions/web-app
+python3 -m http.server 8000
+```
+
+Then open `http://localhost:8000`.
+
+Public hosting is through Vercel from GitHub repo `kccpenn00/spain-trip-2026`, with Vercel root directory set to `ux-versions/web-app`.
+
+Code changes require a commit and push to GitHub. Sheet-only itinerary changes do not require a Git commit because the website reads the live Google Sheet after refresh.
+
+Important implementation note: parse Google Sheet `YYYY-MM-DD` values as local calendar dates. Do not rely on JavaScript's default `Date.parse("YYYY-MM-DD")`, which can shift dates one day earlier in Pacific time.
+
 ## Important Principle
 
 Every itinerary item should include:
