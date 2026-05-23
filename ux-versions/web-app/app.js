@@ -2,7 +2,7 @@ let days = [
   {
     city: "Transit",
     date: "Sun, May 31",
-    title: "Depart SF",
+    title: "Depart San Francisco",
     summary: "Start the trip with the long-haul United Polaris flight to Barcelona.",
     anchors: [
       ["6:00 PM", "United UA 672 departs SFO, seats 9D and 9G"]
@@ -52,9 +52,10 @@ let days = [
   {
     city: "Madrid",
     date: "Fri, Jun 5",
-    title: "Madrid and Deessa",
-    summary: "A second Madrid day with the Deessa reservation as the evening anchor.",
+    title: "Prado and Deessa",
+    summary: "A second Madrid day with a timed Museo Nacional del Prado visit in the morning and Deessa as the evening anchor.",
     anchors: [
+      ["10:15 AM", "Museo Nacional del Prado timed entry, locator M258918F"],
       ["8:15 PM", "Deessa reservation for 2, booked through The Fork"]
     ]
   },
@@ -110,7 +111,7 @@ let days = [
     city: "Transit",
     date: "Wed, Jun 10",
     title: "Fly Home",
-    summary: "Check out and return to SF on United Polaris.",
+    summary: "Check out and return to San Francisco on United Polaris.",
     anchors: [
       ["11:00 AM", "Seventy Barcelona return stay check-out"],
       ["4:10 PM", "United UA 673 departs BCN, seats 2D and 2G"],
@@ -288,6 +289,19 @@ let activities = [
     tripadvisor: "https://www.tripadvisor.com/Search?q=Corral%20de%20la%20Moreria%20Madrid"
   },
   {
+    id: "activity-prado",
+    city: "Madrid",
+    name: "Museo Nacional del Prado",
+    date: "Fri, Jun 5",
+    start: "10:15 AM",
+    end: "TBD",
+    sortDate: "2026-06-05T10:15:00",
+    details: "Collection + Exhibitions timed entry for 2, plus 2 audioguides. Locator M258918F. No refunds; no guided tour included.",
+    address: "Paseo del Prado s/n, 28014 Madrid",
+    website: "https://www.museodelprado.es/",
+    tripadvisor: "https://www.tripadvisor.com/Attraction_Review-g187514-d190143-Reviews-Museo_Nacional_del_Prado-Madrid.html"
+  },
+  {
     id: "activity-paella-legacy",
     city: "Seville",
     name: "Paella Legacy",
@@ -335,15 +349,35 @@ const fallbackData = {
 };
 
 const timelineLinkLabels = new Map([
+  ["Check out of Seventy Barcelona before train", "hotel-seventy-barcelona-first"],
+  ["Seventy Barcelona check-in / room access", "hotel-seventy-barcelona-first"],
+  ["Check out of Seventy Barcelona", "hotel-seventy-barcelona-return"],
+  ["Check in to Seventy Barcelona", "hotel-seventy-barcelona-return"],
+  ["Check in to Gran Hotel Ingles", "hotel-gran-hotel-ingles"],
+  ["Check out of Gran Hotel Ingles", "hotel-gran-hotel-ingles"],
+  ["Check in to Hotel Alfonso XIII", "hotel-alfonso-xiii"],
+  ["Check out of Hotel Alfonso XIII", "hotel-alfonso-xiii"],
+  ["Depart SFO to Barcelona", "travel-united-ua-672"],
+  ["Arrive Barcelona from SFO", "travel-united-ua-672"],
+  ["Depart Barcelona to SFO", "travel-united-ua-673"],
+  ["Arrive SFO from Barcelona", "travel-united-ua-673"],
+  ["Arrive SFO", "travel-united-ua-673"],
+  ["Train Barcelona to Madrid", "travel-iryo-06110"],
+  ["Train Madrid to Cordoba", "travel-renfe-ave-02082"],
+  ["Train Cordoba to Seville", "travel-renfe-ave-02130"],
+  ["Fly Seville to Barcelona", "travel-iberia-vueling-5065"],
+  ["Arrive BCN", "travel-iberia-vueling-5065"],
+  ["Dinner at Enigma", "restaurant-enigma"],
+  ["Dinner at Deessa", "restaurant-deessa"],
+  ["Dinner at La Barra de Canabota", "restaurant-la-barra-de-canabota"],
+  ["Corral de la Moreria dinner + flamenco show", "activity-corral-de-la-moreria"],
+  ["Museo Nacional del Prado timed entry + audioguides", "activity-prado"],
+  ["Paella Legacy Seville cooking class and dinner", "activity-paella-legacy"],
+  ["Small-group Alcazar guided tour & entry ticket", "activity-alcazar-guided-tour"],
   ["United UA 672", "travel-united-ua-672"],
   ["ILSA iryo 06110", "travel-iryo-06110"],
   ["Renfe AVE 02082", "travel-renfe-ave-02082"],
   ["Renfe AVE 02130", "travel-renfe-ave-02130"],
-  ["Barcelona -> Madrid", "travel-iryo-06110"],
-  ["Barcelona Sants", "travel-iryo-06110"],
-  ["Madrid Atocha", "travel-iryo-06110"],
-  ["Madrid -> Cordoba", "travel-renfe-ave-02082"],
-  ["Cordoba -> Seville", "travel-renfe-ave-02130"],
   ["Iberia 5065", "travel-iberia-vueling-5065"],
   ["United UA 673", "travel-united-ua-673"],
   ["Seventy Barcelona check-in", "hotel-seventy-barcelona-first"],
@@ -359,6 +393,7 @@ const timelineLinkLabels = new Map([
   ["Deessa reservation", "restaurant-deessa"],
   ["La Barra de Canabota", "restaurant-la-barra-de-canabota"],
   ["Corral de la Moreria", "activity-corral-de-la-moreria"],
+  ["Museo Nacional del Prado", "activity-prado"],
   ["Paella Legacy", "activity-paella-legacy"],
   ["Alcazar tour", "activity-alcazar-guided-tour"]
 ]);
@@ -370,6 +405,7 @@ const summaryLinkReplacements = [
   ["Seventy Barcelona for the first stay", '<a class="jumpLink" href="#hotel-seventy-barcelona-first">Seventy Barcelona</a> for the first stay'],
   ["Gran Hotel Ingles", '<a class="jumpLink" href="#hotel-gran-hotel-ingles">Gran Hotel Ingles</a>'],
   ["Corral de la Moreria", '<a class="jumpLink" href="#activity-corral-de-la-moreria">Corral de la Moreria</a>'],
+  ["Museo Nacional del Prado", '<a class="jumpLink" href="#activity-prado">Museo Nacional del Prado</a>'],
   ["Deessa reservation", '<a class="jumpLink" href="#restaurant-deessa">Deessa reservation</a>'],
   ["Hotel Alfonso XIII", '<a class="jumpLink" href="#hotel-alfonso-xiii">Hotel Alfonso XIII</a>'],
   ["Paella Legacy", '<a class="jumpLink" href="#activity-paella-legacy">Paella Legacy</a>'],
@@ -516,17 +552,6 @@ function parseSheetDate(value) {
   const gvizDate = text.match(/^Date\((\d+),(\d+),(\d+)/);
   if (gvizDate) return new Date(Number(gvizDate[1]), Number(gvizDate[2]), Number(gvizDate[3]));
 
-  const isoDate = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (isoDate) {
-    return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
-  }
-
-  const slashDate = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (slashDate) {
-    const year = Number(slashDate[3]);
-    return new Date(year < 100 ? 2000 + year : year, Number(slashDate[1]) - 1, Number(slashDate[2]));
-  }
-
   const parsed = Date.parse(text);
   return Number.isNaN(parsed) ? null : new Date(parsed);
 }
@@ -546,8 +571,7 @@ function sortDateTime(dateValue, timeValue) {
   const date = parseSheetDate(dateValue);
   if (!date) return 0;
 
-  const normalizedTime = String(timeValue || "12:00 AM").replace(/^(before|by)\s+/i, "");
-  const parsedTime = Date.parse(`${date.toDateString()} ${normalizedTime}`);
+  const parsedTime = Date.parse(`${date.toDateString()} ${timeValue || "12:00 AM"}`);
   return Number.isNaN(parsedTime) ? date.getTime() : parsedTime;
 }
 
@@ -563,262 +587,16 @@ function urlValue(value) {
 
 function matchingFallback(items, name) {
   const normalizedName = slugify(name);
-  return items.find((item) => slugify(item.name || item.route) === normalizedName)
-    || items.find((item) => normalizedName.includes(slugify(item.name || item.route)) || slugify(item.name || item.route).includes(normalizedName));
+  const identityValues = (item) => [item.name, item.route, item.carrier].filter(Boolean);
+  return items.find((item) => identityValues(item).some((value) => slugify(value) === normalizedName))
+    || items.find((item) => identityValues(item).some((value) => {
+      const normalizedValue = slugify(value);
+      return normalizedName.includes(normalizedValue) || normalizedValue.includes(normalizedName);
+    }));
 }
 
 function fallbackUrl(fallbackItem, key) {
   return fallbackItem?.[key] || "";
-}
-
-function compactTripText(value) {
-  return String(value || "").replace(/\bSan Francisco\b/g, "SF");
-}
-
-function sameCalendarDate(a, b) {
-  const first = parseSheetDate(a);
-  const second = parseSheetDate(b);
-  return !!first && !!second
-    && first.getFullYear() === second.getFullYear()
-    && first.getMonth() === second.getMonth()
-    && first.getDate() === second.getDate();
-}
-
-function checkoutDeadlineFromText(value) {
-  return String(value || "").match(/check-?out\s+(\d{1,2}:\d{2}\s*[AP]M)/i)?.[1] || "";
-}
-
-function addOrReplaceAnchor(day, time, label, meta = {}) {
-  const normalizedLabel = slugify(label);
-  const targetId = meta.targetId || "";
-  const existingIndex = day.anchors.findIndex((anchor) => (
-    (targetId && anchor[2]?.targetId === targetId && includesLoose(anchor[1], label))
-    || slugify(anchor[1]) === normalizedLabel
-  ));
-  const anchor = [time, label, meta];
-
-  if (existingIndex >= 0) {
-    day.anchors[existingIndex] = anchor;
-    return;
-  }
-
-  day.anchors.push(anchor);
-}
-
-function normalizeCheckoutAnchors(day) {
-  day.anchors = day.anchors.map(([time, label, meta = {}]) => {
-    if (!/check-?out|check out/i.test(label)) return [time, label, meta];
-
-    const normalizedTime = String(time || "").replace(/^before\s+/i, "by ");
-    return [
-      /^by\s+/i.test(normalizedTime) ? normalizedTime : `by ${normalizedTime}`,
-      label,
-      { ...meta, priority: -1 }
-    ];
-  });
-}
-
-function sortDayAnchors(day) {
-  normalizeCheckoutAnchors(day);
-  return day.anchors.sort((a, b) => {
-    const priorityA = a[2]?.priority ?? 0;
-    const priorityB = b[2]?.priority ?? 0;
-    if (priorityA !== priorityB) return priorityA - priorityB;
-
-    return sortDateTime(day.rawDate, a[0]) - sortDateTime(day.rawDate, b[0]);
-  });
-}
-
-function cityNameFromRoutePart(routePart) {
-  const text = String(routePart || "").trim();
-  return text.split(/\s+/)[0] || text;
-}
-
-function addTravelArrivalsToDays(dayList, travelItems) {
-  travelItems.forEach((item) => {
-    const existingArrival = dayList.some((day) => day.anchors.some((anchor) => (
-      anchor[2]?.targetId === item.id && /\b(arrive|arrival)\b/i.test(anchor[1])
-    )));
-    if (existingArrival) return;
-
-    const arrivalTime = usefulText(item.arrive);
-    if (!arrivalTime) return;
-
-    const departureDay = dayList.find((day) => day.anchors.some((anchor) => (
-      anchor[2]?.targetId === item.id || travelLabelMatchesItem(anchor[1], item)
-    )));
-    const rawArrivalDate = item.rawArriveDate || item.rawDepartDate;
-    const day = departureDay || dayList.find((candidate) => sameCalendarDate(candidate.rawDate, rawArrivalDate));
-
-    if (!day) return;
-
-    const destination = item.arriveTo || item.route.split(/\s*->\s*/)[1] || item.route;
-    const label = `${item.type} arrives ${destination}`;
-    addOrReplaceAnchor(day, arrivalTime, label, { targetId: item.id });
-  });
-}
-
-function linkExistingTravelAnchors(dayList, travelItems) {
-  dayList.forEach((day) => {
-    day.anchors = day.anchors.map(([time, label, meta = {}]) => {
-      if (meta.targetId) return [time, label, meta];
-
-      const travelItem = travelItems.find((item) => travelLabelMatchesItem(label, item));
-      return travelItem ? [time, label, { ...meta, targetId: travelItem.id }] : [time, label, meta];
-    });
-  });
-}
-
-function updateCheckoutDeadlines(dayList, hotelItems) {
-  dayList.forEach((day) => {
-    day.anchors = day.anchors.map(([time, label, meta = {}]) => {
-      if (!/check-?out|check out/i.test(label)) return [time, label, meta];
-
-      const datedHotel = hotelItems.find((item) => (
-        sameCalendarDate(day.rawDate, item.rawCheckOutDate) && includesLoose(label, item.name)
-      ));
-      const targetId = datedHotel?.id || meta.targetId || findCurrentCardId(label);
-      const hotel = hotelItems.find((item) => item.id === targetId);
-      const deadline = usefulText(hotel?.checkOutTime) || checkoutDeadlineFromText(hotel?.details) || String(time || "").replace(/^(before|by)\s+/i, "");
-
-      return [
-        `by ${deadline || "12:00 PM"}`,
-        label,
-        { ...meta, targetId, priority: -1 }
-      ];
-    });
-  });
-}
-
-function linkExistingHotelAnchors(dayList, hotelItems) {
-  dayList.forEach((day) => {
-    day.anchors = day.anchors.map(([time, label, meta = {}]) => {
-      if (meta.targetId || !/check-?in|check in|check-?out|check out/i.test(label)) return [time, label, meta];
-
-      const dateKey = /check-?out|check out/i.test(label) ? "rawCheckOutDate" : "rawCheckInDate";
-      const hotel = hotelItems.find((item) => (
-        sameCalendarDate(day.rawDate, item[dateKey]) && includesLoose(label, item.name)
-      ));
-
-      return hotel ? [time, label, { ...meta, targetId: hotel.id }] : [time, label, meta];
-    });
-  });
-}
-
-function dataHasId(id) {
-  return [...transport, ...hotels, ...restaurants, ...activities].some((item) => item.id === id);
-}
-
-function includesLoose(haystack, needle) {
-  const normalizedHaystack = slugify(haystack);
-  const normalizedNeedle = slugify(needle);
-  return normalizedHaystack && normalizedNeedle && (
-    normalizedHaystack.includes(normalizedNeedle) || normalizedNeedle.includes(normalizedHaystack)
-  );
-}
-
-function routeAliases(route) {
-  const text = String(route || "").trim();
-  if (!text) return [];
-
-  const arrowParts = text.split(/\s*->\s*/).filter(Boolean);
-  return [
-    text,
-    text.replace(/\s*->\s*/g, " to "),
-    arrowParts.length === 2 ? `${arrowParts[1]} from ${arrowParts[0]}` : "",
-    arrowParts.length === 2 ? `Train ${arrowParts[0]} to ${arrowParts[1]}` : "",
-    arrowParts.length === 2 ? `Fly ${arrowParts[0]} to ${arrowParts[1]}` : ""
-  ].filter(Boolean);
-}
-
-function locationKeywords(value) {
-  return String(value || "")
-    .split(/[^a-zA-Z0-9]+/)
-    .map((part) => part.trim().toLowerCase())
-    .filter((part) => part.length >= 3);
-}
-
-function travelLabelMatchesItem(label, item) {
-  const normalizedLabel = slugify(label);
-  if (!normalizedLabel) return false;
-
-  if (item.carrier && includesLoose(label, item.carrier)) return true;
-  if (routeAliases(item.route).some((alias) => includesLoose(label, alias))) return true;
-
-  const routeParts = String(item.route || "").split(/\s*->\s*/);
-  const originKeywords = locationKeywords(item.departFrom || routeParts[0]);
-  const destinationKeywords = locationKeywords(item.arriveTo || routeParts[1]);
-  const hasTravelWord = /\b(train|fly|flight|depart|arrive|arrival)\b/i.test(label);
-  const originIndex = originKeywords
-    .map((keyword) => normalizedLabel.indexOf(keyword))
-    .filter((index) => index >= 0)
-    .sort((a, b) => a - b)[0];
-  const destinationIndex = destinationKeywords
-    .map((keyword) => normalizedLabel.indexOf(keyword))
-    .filter((index) => index >= 0)
-    .sort((a, b) => a - b)[0];
-  const hasOrigin = originIndex !== undefined;
-  const hasDestination = destinationIndex !== undefined;
-  const routeDirectionMatches = normalizedLabel.includes("from")
-    ? destinationIndex < originIndex
-    : originIndex < destinationIndex;
-
-  return hasTravelWord && hasOrigin && hasDestination && routeDirectionMatches;
-}
-
-function fallbackHotelFor(property, checkInDate) {
-  const matchingHotels = fallbackData.hotels.filter((hotel) => includesLoose(hotel.name, property));
-  if (matchingHotels.length <= 1) return matchingHotels[0];
-
-  const parsedCheckIn = parseSheetDate(checkInDate);
-  const monthDay = parsedCheckIn
-    ? `${parsedCheckIn.getMonth() + 1}/${parsedCheckIn.getDate()}`
-    : String(checkInDate || "");
-
-  if (/6\/8|jun 8/i.test(monthDay)) {
-    return matchingHotels.find((hotel) => /return/i.test(hotel.id)) || matchingHotels[1];
-  }
-
-  return matchingHotels.find((hotel) => !/return/i.test(hotel.id)) || matchingHotels[0];
-}
-
-function findCurrentCardId(label, targetId = "") {
-  if (targetId && dataHasId(targetId)) return targetId;
-
-  const transportByLabel = transport.find((item) => travelLabelMatchesItem(label, item));
-
-  if (transportByLabel) return transportByLabel.id;
-
-  const candidates = [
-    ...transport.map((item) => ({
-      id: item.id,
-      aliases: [item.carrier, item.route, item.details]
-    })),
-    ...hotels.map((item) => ({
-      id: item.id,
-      aliases: [item.name, item.details, item.note]
-    })),
-    ...restaurants.map((item) => ({
-      id: item.id,
-      aliases: [item.name, item.details, item.address]
-    })),
-    ...activities.map((item) => ({
-      id: item.id,
-      aliases: [item.name, item.details, item.address]
-    }))
-  ];
-
-  if (/seventy barcelona/i.test(label)) {
-    const seventyHotels = hotels.filter((hotel) => includesLoose(hotel.name, "Seventy Barcelona"));
-    if (/return/i.test(label)) {
-      return seventyHotels.find((hotel) => /return|jun 8/i.test(`${hotel.id} ${hotel.details}`))?.id || seventyHotels[1]?.id || "";
-    }
-    return seventyHotels.find((hotel) => !/return|jun 8/i.test(`${hotel.id} ${hotel.details}`))?.id || seventyHotels[0]?.id || "";
-  }
-
-  return candidates.find((candidate) => (
-    candidate.aliases.some((alias) => alias && includesLoose(label, alias))
-  ))?.id || "";
 }
 
 function buildDays(timelineRows, dailyPlanRows) {
@@ -872,7 +650,7 @@ function buildDays(timelineRows, dailyPlanRows) {
   return [...grouped.values()]
     .map((day) => ({
       ...day,
-      anchors: sortDayAnchors(day)
+      anchors: day.anchors.sort((a, b) => sortDateTime(day.rawDate, a[0]) - sortDateTime(day.rawDate, b[0]))
     }))
     .sort((a, b) => parseSheetDate(a.rawDate) - parseSheetDate(b.rawDate));
 }
@@ -886,26 +664,19 @@ function buildTransport(travelRows) {
     const flightTrain = getValue(row, ["flightTrain", "flight", "train"]);
     const departFrom = getValue(row, ["departFrom"]);
     const arriveTo = getValue(row, ["arriveTo"]);
-    const departDate = getValue(row, ["departDate"]);
-    const arriveDate = getValue(row, ["arriveDate"]) || departDate;
     const confirmation = getValue(row, ["confirmation", "ticketRecordLocator"]);
     const notes = getValue(row, ["notesSourceOfTruth", "source", "notes"]);
-    const fallbackTrip = matchingFallback(fallbackData.transport, tripLeg || `${departFrom} -> ${arriveTo}`);
-    const departDisplay = displayDate(departDate);
-    const arriveDisplay = displayDate(arriveDate);
+    const fallbackItem = matchingFallback(fallbackData.transport, tripLeg || `${departFrom} -> ${arriveTo}`)
+      || matchingFallback(fallbackData.transport, [carrier, flightTrain].filter(Boolean).join(" "));
 
     return {
-      id: fallbackTrip?.id || `travel-${slugify(tripLeg || flightTrain || index, index)}`,
+      id: fallbackItem?.id || `travel-${slugify(tripLeg || flightTrain || index, index)}`,
       type: /flight|air|iberia|united|vueling/i.test(`${carrier} ${flightTrain}`) ? "Flight" : "Train",
       route: tripLeg || `${departFrom} -> ${arriveTo}`,
       carrier: [carrier, flightTrain].filter(Boolean).join(" "),
-      date: departDisplay === arriveDisplay ? departDisplay : `${departDisplay} / ${arriveDisplay}`,
+      date: displayDate(getValue(row, ["departDate"])),
       depart: getValue(row, ["departTime"]) || "TBD",
       arrive: getValue(row, ["arriveTime"]) || "TBD",
-      rawDepartDate: departDate,
-      rawArriveDate: arriveDate,
-      departFrom,
-      arriveTo,
       details: [
         getValue(row, ["aircraftEquipment", "cabinFare"]),
         getValue(row, ["seats"]),
@@ -923,23 +694,21 @@ function buildHotels(lodgingRows) {
   return lodgingRows.map((row, index) => {
     const property = getValue(row, ["property", "name"]);
     const checkInDate = getValue(row, ["checkInDate"]);
-    const checkOutDate = getValue(row, ["checkOutDate"]);
-    const checkOutTime = getValue(row, ["checkOutTime", "checkoutTime", "checkOut", "checkout"]);
-    const fallbackHotel = fallbackHotelFor(property, checkInDate);
+    const isSeventyReturn = /seventy barcelona/i.test(property) && /2026-06-08|Jun 8/i.test(checkInDate);
+    const fallbackHotel = isSeventyReturn
+      ? fallbackData.hotels.find((hotel) => hotel.id === "hotel-seventy-barcelona-return")
+      : matchingFallback(fallbackData.hotels, property);
     return {
       id: fallbackHotel?.id || `hotel-${slugify(`${property}-${checkInDate}`, index)}`,
       city: getValue(row, ["city"]) || "Trip",
       name: property || "Lodging",
       details: [
-        displayDate(checkInDate),
+        displayDate(getValue(row, ["checkInDate"])),
         "to",
-        displayDate(checkOutDate),
+        displayDate(getValue(row, ["checkOutDate"])),
         getValue(row, ["confirmation"]) && `Confirmation ${getValue(row, ["confirmation"])}`,
         getValue(row, ["room"])
       ].filter(Boolean).join(" "),
-      rawCheckInDate: checkInDate,
-      rawCheckOutDate: checkOutDate,
-      checkOutTime,
       note: getValue(row, ["notes", "cancellationNotes", "status"]),
       address: getValue(row, ["address"]),
       mapUrl: urlValue(getValue(row, ["mapLink"])),
@@ -982,16 +751,9 @@ function buildTimedItems(rows, options) {
 }
 
 function applySheetRows(rowsByTab) {
+  days = buildDays(rowsByTab.timeline, rowsByTab.dailyPlans);
   transport = buildTransport(rowsByTab.travel);
   hotels = buildHotels(rowsByTab.lodging);
-  days = buildDays(rowsByTab.timeline, rowsByTab.dailyPlans);
-  linkExistingTravelAnchors(days, transport);
-  linkExistingHotelAnchors(days, hotels);
-  updateCheckoutDeadlines(days, hotels);
-  addTravelArrivalsToDays(days, transport);
-  days.forEach((day) => {
-    day.anchors = sortDayAnchors(day);
-  });
   restaurants = buildTimedItems(rowsByTab.restaurants, {
     fallback: fallbackData.restaurants,
     fallbackName: "Restaurant",
@@ -1024,24 +786,80 @@ function renderLinks(item) {
   return links ? `<p class="links">${links}</p>` : "";
 }
 
-function linkToKnownCard(label, targetId = "") {
-  const match = [...timelineLinkLabels].find(([text]) => label.includes(text));
-  const resolvedTargetId = findCurrentCardId(label, targetId || match?.[1]);
-  if (!resolvedTargetId) return label;
+function detailItems() {
+  return [
+    ...transport.map((item) => ({ ...item, section: "travel" })),
+    ...hotels.map((item) => ({ ...item, section: "hotel" })),
+    ...restaurants.map((item) => ({ ...item, section: "restaurant" })),
+    ...activities.map((item) => ({ ...item, section: "activity" }))
+  ];
+}
 
-  return `<a class="jumpLink" href="#${resolvedTargetId}">${label}</a>`;
+function detailIdExists(id) {
+  return detailItems().some((item) => item.id === id);
+}
+
+function significantTokens(value) {
+  return slugify(value)
+    .split("-")
+    .filter((token) => token.length > 2 && !["the", "and", "for", "with", "from", "into"].includes(token));
+}
+
+function itemMatchPhrases(item) {
+  if (item.section === "travel") {
+    return [
+      item.route,
+      item.carrier,
+      item.route?.replace(/\s*->\s*/g, " to "),
+      item.carrier?.replace(/\s*\/\s*/g, " ")
+    ].filter(Boolean);
+  }
+
+  if (item.section === "hotel") {
+    return [
+      item.name,
+      `${item.name} check-in`,
+      `${item.name} check-out`,
+      `check in to ${item.name}`,
+      `check out of ${item.name}`
+    ];
+  }
+
+  return [item.name].filter(Boolean);
+}
+
+function dynamicDetailTarget(label) {
+  const normalizedLabel = slugify(label);
+  const candidates = detailItems()
+    .flatMap((item) => itemMatchPhrases(item).map((phrase) => ({ item, phrase, tokens: significantTokens(phrase) })))
+    .filter(({ tokens }) => tokens.length > 0)
+    .map((candidate) => {
+      const normalizedPhrase = slugify(candidate.phrase);
+      const containsPhrase = normalizedPhrase.length > 4 && normalizedLabel.includes(normalizedPhrase);
+      const tokenScore = candidate.tokens.filter((token) => normalizedLabel.includes(token)).length;
+      return {
+        ...candidate,
+        score: containsPhrase ? candidate.tokens.length + 10 : tokenScore
+      };
+    })
+    .filter(({ score, tokens }) => score >= Math.min(tokens.length, 2))
+    .sort((a, b) => b.score - a.score || b.tokens.length - a.tokens.length);
+
+  return candidates[0]?.item.id || "";
+}
+
+function linkToKnownCard(label) {
+  const match = [...timelineLinkLabels]
+    .sort(([a], [b]) => b.length - a.length)
+    .find(([text, id]) => label.includes(text) && detailIdExists(id));
+  const targetId = match?.[1] || dynamicDetailTarget(label);
+  if (!targetId) return label;
+
+  return `<a class="jumpLink" href="#${targetId}">${label}</a>`;
 }
 
 function linkSummaryTerms(summary) {
-  return summaryLinkReplacements.reduce((linked, [phrase, replacement]) => {
-    const legacyTarget = replacement.match(/href="#([^"]+)"/)?.[1] || "";
-    const targetId = findCurrentCardId(phrase, legacyTarget);
-    const dynamicReplacement = targetId
-      ? replacement.replace(/href="#[^"]+"/, `href="#${targetId}"`)
-      : phrase;
-
-    return linked.replace(phrase, dynamicReplacement);
-  }, summary);
+  return summaryLinkReplacements.reduce((linked, [phrase, replacement]) => linked.replace(phrase, replacement), summary);
 }
 
 function renderDays(city = "All") {
@@ -1050,18 +868,18 @@ function renderDays(city = "All") {
     <article class="dayCard">
       <div class="dayTop">
         <div class="dateBlock">
-          <span>${compactTripText(day.city)}</span>
-          <strong>${compactTripText(day.date)}</strong>
+          <span>${day.city}</span>
+          <strong>${day.date}</strong>
         </div>
-        <span class="badge ${day.city}">${compactTripText(day.city)}</span>
+        <span class="badge ${day.city}">${day.city}</span>
       </div>
-      <h3>${compactTripText(day.title)}</h3>
-      <p>${linkSummaryTerms(compactTripText(day.summary))}</p>
+      <h3>${day.title}</h3>
+      <p>${linkSummaryTerms(day.summary)}</p>
       <div class="anchors">
-        ${day.anchors.map(([time, label, meta = {}]) => `
+        ${day.anchors.map(([time, label]) => `
           <div class="anchor">
-            <time>${compactTripText(time)}</time>
-            <span>${linkToKnownCard(compactTripText(label), meta.targetId)}</span>
+            <time>${time}</time>
+            <span>${linkToKnownCard(label)}</span>
           </div>
         `).join("")}
       </div>
@@ -1072,12 +890,12 @@ function renderDays(city = "All") {
 function renderHotels() {
   stayGrid.innerHTML = hotels.map((hotel) => `
     <article id="${hotel.id}">
-      <span class="city">${compactTripText(hotel.city)}</span>
-      <h3>${compactTripText(hotel.name)}</h3>
-      <p>${compactTripText(hotel.details)}</p>
-      ${hotel.address ? `<p class="address">${compactTripText(hotel.address)}</p>` : ""}
+      <span class="city">${hotel.city}</span>
+      <h3>${hotel.name}</h3>
+      <p>${hotel.details}</p>
+      ${hotel.address ? `<p class="address">${hotel.address}</p>` : ""}
       ${renderLinks(hotel)}
-      ${hotel.note ? `<small>${compactTripText(hotel.note)}</small>` : ""}
+      ${hotel.note ? `<small>${hotel.note}</small>` : ""}
     </article>
   `).join("");
   externalLinksInNewWindow();
@@ -1086,16 +904,16 @@ function renderHotels() {
 function renderTransport() {
   transportGrid.innerHTML = transport.map((item) => `
     <article id="${item.id}">
-      <span>${compactTripText(item.type)}</span>
-      <h3>${compactTripText(item.route)}</h3>
+      <span>${item.type}</span>
+      <h3>${item.route}</h3>
       <dl class="timeMeta">
-        <div><dt>Date</dt><dd>${compactTripText(item.date)}</dd></div>
-        <div><dt>Depart</dt><dd>${compactTripText(item.depart)}</dd></div>
-        <div><dt>Arrive</dt><dd>${compactTripText(item.arrive)}</dd></div>
+        <div><dt>Date</dt><dd>${item.date}</dd></div>
+        <div><dt>Depart</dt><dd>${item.depart}</dd></div>
+        <div><dt>Arrive</dt><dd>${item.arrive}</dd></div>
       </dl>
-      <p class="address">${compactTripText(item.carrier)}</p>
-      <p>${compactTripText(item.details)}</p>
-      ${item.source ? `<small>${compactTripText(item.source)}</small>` : ""}
+      <p class="address">${item.carrier}</p>
+      <p>${item.details}</p>
+      ${item.source ? `<small>${item.source}</small>` : ""}
     </article>
   `).join("");
 }
@@ -1107,15 +925,15 @@ function renderTimedCards(items, grid, city = "All") {
 
   grid.innerHTML = visible.map((item) => `
     <article id="${item.id}">
-      <span class="city">${compactTripText(item.city)}</span>
-      <h3>${compactTripText(item.name)}</h3>
+      <span class="city">${item.city}</span>
+      <h3>${item.name}</h3>
       <dl class="timeMeta">
-        <div><dt>Date</dt><dd>${compactTripText(item.date)}</dd></div>
-        <div><dt>Start</dt><dd>${compactTripText(item.start)}</dd></div>
-        <div><dt>End</dt><dd>${compactTripText(item.end)}</dd></div>
+        <div><dt>Date</dt><dd>${item.date}</dd></div>
+        <div><dt>Start</dt><dd>${item.start}</dd></div>
+        <div><dt>End</dt><dd>${item.end}</dd></div>
       </dl>
-      ${item.details ? `<p>${compactTripText(item.details)}</p>` : ""}
-      ${item.address ? `<p class="address">${compactTripText(item.address)}</p>` : ""}
+      ${item.details ? `<p>${item.details}</p>` : ""}
+      ${item.address ? `<p class="address">${item.address}</p>` : ""}
       ${renderLinks(item)}
     </article>
   `).join("");
@@ -1129,16 +947,23 @@ function externalLinksInNewWindow() {
   });
 }
 
-function setActiveFilter(group, city) {
-  document.querySelectorAll(`[data-filter-group="${group}"] button`).forEach((button) => {
-    button.classList.toggle("active", button.dataset.city === city);
-  });
-}
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a.jumpLink[href^='#']");
+  if (!link) return;
+
+  const target = document.querySelector(link.getAttribute("href"));
+  if (!target) return;
+
+  event.preventDefault();
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  history.replaceState(null, "", link.getAttribute("href"));
+});
 
 function wireFilterButtons(group, render) {
   document.querySelectorAll(`[data-filter-group="${group}"] button`).forEach((button) => {
     button.addEventListener("click", () => {
-      setActiveFilter(group, button.dataset.city);
+      document.querySelectorAll(`[data-filter-group="${group}"] button`).forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
       render(button.dataset.city);
     });
   });
@@ -1154,32 +979,6 @@ timelineFilterButtons.forEach((button) => {
 
 wireFilterButtons("restaurants", (city) => renderTimedCards(restaurants, restaurantGrid, city));
 wireFilterButtons("activities", (city) => renderTimedCards(activities, activityGrid, city));
-
-timeline.addEventListener("click", (event) => {
-  const link = event.target.closest('a.jumpLink[href^="#"]');
-  if (!link) return;
-
-  const targetId = decodeURIComponent(link.getAttribute("href").slice(1));
-  const restaurant = restaurants.find((item) => item.id === targetId);
-  const activity = activities.find((item) => item.id === targetId);
-
-  if (restaurant && !document.getElementById(targetId)) {
-    setActiveFilter("restaurants", "All");
-    renderTimedCards(restaurants, restaurantGrid, "All");
-  }
-
-  if (activity && !document.getElementById(targetId)) {
-    setActiveFilter("activities", "All");
-    renderTimedCards(activities, activityGrid, "All");
-  }
-
-  const target = document.getElementById(targetId);
-  if (!target) return;
-
-  event.preventDefault();
-  history.pushState(null, "", `#${targetId}`);
-  target.scrollIntoView({ behavior: "smooth", block: "start" });
-});
 
 function renderAll() {
   const activeTimelineCity = document.querySelector('[data-filter-group="timeline"] button.active')?.dataset.city || "All";

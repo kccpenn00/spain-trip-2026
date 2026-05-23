@@ -1,6 +1,6 @@
 # Current Itinerary Facts
 
-This file summarizes facts already entered into the Google Sheet as of May 23, 2026.
+This file summarizes facts already entered into the Google Sheet as of May 19, 2026.
 
 Google Sheet:
 https://docs.google.com/spreadsheets/d/1sNllJGDcu2K-AIwFi2fbK785n-THs529jsNFj_L3L5I/edit?usp=drivesdk
@@ -180,20 +180,6 @@ https://docs.google.com/spreadsheets/d/1sNllJGDcu2K-AIwFi2fbK785n-THs529jsNFj_L3
 
 ## Restaurants
 
-### Casa Amalia 1950
-
-- City: Barcelona
-- Date: Mon, Jun 1, 2026
-- Time: 9:15 PM
-- Diners: 2
-- Address: Ptge. del Mercat, 14, Eixample, 08009 Barcelona, Spain
-- Phone: +34 934 58 94 58
-- Website: https://casaamalia.com/mercatconcepcio/inicio
-- Tripadvisor reviews: https://www.tripadvisor.com/Restaurant_Review-g187497-d2002185-Reviews-Restaurant_Casa_Amalia-Barcelona_Catalonia.html
-- Source of truth: Gmail
-- Notes: Google and Tripadvisor list the Ptge. del Mercat address. A separate Port Vell Casa Amalia site was provided earlier but should not be treated as the active reservation address unless the confirmation email says otherwise.
-- Missing: confirmation number, booked-under name, original Gmail subject/date, direct email/contact if needed
-
 ### Enigma
 
 - City: Barcelona
@@ -256,6 +242,29 @@ https://docs.google.com/spreadsheets/d/1sNllJGDcu2K-AIwFi2fbK785n-THs529jsNFj_L3
 - Dinner: not included in ticket price; paid at restaurant, minimum 49.95 EUR per person
 - Notes: Present reservation number or email at entrance
 - Missing: original email subject/date, map link, cancellation/change policy
+
+### Museo Nacional del Prado: Collection + Exhibitions
+
+- City: Madrid
+- Date: Fri, Jun 5, 2026
+- Time: 10:15 AM
+- Guests: 2
+- Booking reference / locator: M258918F
+- Ticket identifiers: M258918F-1; M258918F-2
+- Audioguide complement identifiers: M258918F-3; M258918F-4
+- Ticket type: 2x General + Exhibition time pass
+- Add-on: 2x Audioguide
+- Total price: 40 EUR
+- Address: Paseo del Prado s/n, 28014 Madrid
+- Phone: +34 910 683 001
+- Email: cav@museodelprado.es
+- Website: https://www.museodelprado.es/
+- Tripadvisor reviews: https://www.tripadvisor.com/Attraction_Review-g187514-d190143-Reviews-Museo_Nacional_del_Prado-Madrid.html
+- Registered email: k*****0@hotmail.com
+- Source of truth: Gmail sent message "Prado tickets" with attached M258918F.pdf
+- Notes: Go directly to the entrance; show ticket at museum entrance. Security control may delay access. No refunds. Does not include a guided tour. Collect audioguides at the corresponding desk inside the museum. To access quicker, come without backpack.
+- Restrictions visible in ticket: no photographs/video, food/beverages, large umbrellas/sharp objects/bags over 40 x 40 cm, folding chairs/cane seats, or children under 14 unaccompanied by an adult.
+- Missing: map link / preferred entrance if different from main address, expected visit duration
 
 ### Paella Legacy Seville: Group Standard Experience
 
