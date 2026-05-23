@@ -49,6 +49,22 @@ Code changes require a commit and push to GitHub. Sheet-only itinerary changes d
 
 Important implementation note: parse Google Sheet `YYYY-MM-DD` values as local calendar dates. Do not rely on JavaScript's default `Date.parse("YYYY-MM-DD")`, which can shift dates one day earlier in Pacific time.
 
+### Avoiding Local / Deploy Drift
+
+- For pushable website changes, work from `/Users/kchristensen/Documents/GitHub/spain-trip-2026`, not only the Codex workspace copy.
+- Run localhost from the repo web app folder:
+
+```bash
+cd /Users/kchristensen/Documents/GitHub/spain-trip-2026/ux-versions/web-app
+python3 -m http.server 8000
+```
+
+- If localhost looks stale or wrong, check whether an old server is still serving a different folder on port 8000.
+- The hero image should ship as `assets/spain-hero.png`. If replacing the image without renaming the file, update the query string in `index.html`, for example `assets/spain-hero.png?v=2`.
+- Preserve the current hero copy unless explicitly asked to change it:
+  - `Spain 2026 - LFG!!!`
+  - `Everything you need to kick back, relax, and enjoy your trip.`
+
 ## Important Principle
 
 Every itinerary item should include:

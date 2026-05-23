@@ -50,13 +50,29 @@ Normal workflow:
 
 The local test server can be run from `ux-versions/web-app` with `python3 -m http.server 8000`, then opened at `http://localhost:8000`.
 
+### Repo And Localhost Guardrails
+
+- The deployable repo is `/Users/kchristensen/Documents/GitHub/spain-trip-2026`. Treat this as the code source of truth for push/deploy work.
+- The Codex workspace copy `/Users/kchristensen/Documents/Codex Projects/Spain Trip` can drift from the deployable repo. If changes are made there, sync them intentionally into the GitHub repo before telling Kevin they are ready to push.
+- Before testing localhost, confirm which folder is being served. Prefer running `python3 -m http.server 8000` from `/Users/kchristensen/Documents/GitHub/spain-trip-2026/ux-versions/web-app` so local preview matches the deployable repo.
+- If port 8000 is already running, check or restart it before assuming localhost reflects the latest files. Old server processes can keep serving the wrong folder.
+- After syncing files, run `git -C /Users/kchristensen/Documents/GitHub/spain-trip-2026 status --short` so changes are visible in the actual repo, not only in the Codex workspace.
+- Do not overwrite the repo `index.html` with a stale workspace copy. Preserve current hero copy, asset paths, and cache keys when syncing targeted fixes.
+
 ## Implementation Notes
 
 - The web app live-loads the Sheet tabs in the browser and falls back to embedded data if the Sheet is unavailable.
 - Spreadsheet date strings such as `2026-06-02` must be parsed as local calendar dates, not as UTC instants. JavaScript `Date.parse("YYYY-MM-DD")` caused one-day-early display in Pacific time.
 - Daily timeline jump links should resolve against currently rendered Sheet-backed card IDs, not only embedded fallback IDs.
+- When a timeline item has a matching detail card, its "What's up today" note should link to that card. Audit in the browser by checking `.anchor a.jumpLink` targets against rendered detail-card IDs.
 - Hotel checkout rows should sort first on checkout days and display `by <time>` to show the latest checkout deadline, even if the traveler will leave earlier for a train or flight.
 - Detailed travel cards should show both departure and arrival dates when they differ, for example `Sun, May 31 / Mon, Jun 1`.
+- The hero image URL in `index.html` should point to `assets/spain-hero.png`, because that is the deploy-safe alias committed in the repo. If the underlying image changes but the filename stays the same, bump the image query string, for example `assets/spain-hero.png?v=2`, to avoid stale browser/CDN cache.
+- The selected final hero image is the wine version; in the Codex workspace it may also exist as `assets/spain-hero-with-us-v4-wine.png`. Keep `assets/spain-hero.png` as the shipping alias in both the Codex workspace and GitHub repo.
+- After JavaScript changes, bump the script query string in `index.html`, for example `app.js?v=9`, so the browser and Vercel do not serve stale JS.
+- Current preferred hero copy is:
+  - H1: `Spain 2026 - LFG!!!`
+  - Subhead: `Everything you need to kick back, relax, and enjoy your trip.`
 
 ## Collaboration Pattern
 
