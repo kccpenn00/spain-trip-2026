@@ -643,6 +643,7 @@ function buildDays(timelineRows, dailyPlanRows) {
 
     grouped.get(key).anchors.push([
       getValue(row, ["localTime", "time", "startTime"]) || "TBD",
+      getValue(row, ["endArrivalTime", "arrivalTime", "arriveTime", "endTime"]),
       summary
     ]);
   });
@@ -876,12 +877,19 @@ function renderDays(city = "All") {
       <h3>${day.title}</h3>
       <p>${linkSummaryTerms(day.summary)}</p>
       <div class="anchors">
-        ${day.anchors.map(([time, label]) => `
+        ${day.anchors.map((anchor) => {
+          const [time, maybeEnd, maybeLabel] = anchor;
+          const end = maybeLabel ? maybeEnd : "";
+          const label = maybeLabel || maybeEnd;
+          const timeLabel = usefulText(end) && end !== time ? `${time} -> ${end}` : time;
+
+          return `
           <div class="anchor">
-            <time>${time}</time>
+            <time>${timeLabel}</time>
             <span>${linkToKnownCard(label)}</span>
           </div>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     </article>
   `).join("");
